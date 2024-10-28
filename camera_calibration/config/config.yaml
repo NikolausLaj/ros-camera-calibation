@@ -1,0 +1,5 @@
+camera_calibration_node:
+  ros__parameters:
+    checkerboard_dims: [5, 8]
+    square_size: 1.0
+    image_path: '/ros-humble-dev-container/src/camera_calibation/images'

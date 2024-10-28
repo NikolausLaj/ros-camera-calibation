@@ -3,29 +3,34 @@ import cv2
 import glob
 import rclpy
 from rclpy.node import Node
-import sys
 import os
+import sys
 
 class CameraCalibrationNode(Node):
     def __init__(self):
         super().__init__('camera_calibration_node')
         
-        # Declare parameters for checkerboard dimensions, square size, and image path
+        # Declare parameters and get them from config
         self.declare_parameter('checkerboard_dims', [7, 7])
         self.declare_parameter('square_size', 1.0)
         self.declare_parameter('image_path', '')
 
-        # Get parameters
+        # Retrieve the parameters
         checkerboard_dims = self.get_parameter('checkerboard_dims').get_parameter_value().integer_array_value
         self.checkerboard_size = (checkerboard_dims[0], checkerboard_dims[1])
         self.square_size = self.get_parameter('square_size').get_parameter_value().double_value
         self.image_path = self.get_parameter('image_path').get_parameter_value().string_value
 
-        # Verify image path
+        self.get_logger().info(f"Checkerbord dimensions: {self.checkerboard_size}")
+        self.get_logger().info(f"Square size: {self.square_size}")
+        self.get_logger().info(f"Image path: {self.image_path}")
+
+        # Verify the image path
         if not os.path.exists(self.image_path):
             self.get_logger().error(f"The specified image path does not exist: {self.image_path}")
             sys.exit(1)
 
+        # Perform the calibration
         self.perform_calibration()
 
     def perform_calibration(self):
