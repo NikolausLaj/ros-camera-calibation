@@ -82,15 +82,50 @@ class CameraCalibrationNode(Node):
         # Log calibration results
         self.get_logger().info(f"Camera Matrix:\n{camera_matrix}")
         self.get_logger().info(f"Distortion Coefficients:\n{dist_coeffs}")
+        self.get_logger().info(f"fx: {camera_matrix[0][0]},fy: {camera_matrix[1][1]},cx: {camera_matrix[0][2]},cy: {camera_matrix[1][2]},k1: {dist_coeffs[0][0]},k2: {dist_coeffs[0][1]},p1: {dist_coeffs[0][2]},p2: {dist_coeffs[0][3]},k3: {dist_coeffs[0][4]}")
 
         # Save calibration data to YAML
         calibration_data = {
-            'camera_matrix': camera_matrix.tolist(),
-            'dist_coeffs': dist_coeffs.tolist(),
-            'rotation_vectors': [rvec.tolist() for rvec in rvecs],
-            'translation_vectors': [tvec.tolist() for tvec in tvecs]
+
+            'fx' : float(camera_matrix[0][0]),
+            'fy' : float(camera_matrix[1][1]),
+            'cx' : float(camera_matrix[0][2]),
+            'cy' : float(camera_matrix[1][2]),
+            'k1' : float(dist_coeffs[0][0]),
+            'k2' : float(dist_coeffs[0][1]),
+            'p1' : float(dist_coeffs[0][2]),
+            'p2' : float(dist_coeffs[0][3]),
+            'k3' : float(dist_coeffs[0][4])
         }
         
+        calibration_data = {
+            'camera_parameters':{
+                'ros__parameters':{
+                    'camera_matrix': {
+                        'rows': 3,
+                        'cols': 3,
+                        'data': [
+                            float(camera_matrix[0][0]), 0, float(camera_matrix[0][2]),
+                            0, float(camera_matrix[1][1]), float(camera_matrix[1][2]),
+                            0, 0, 1
+                        ]
+                    },
+                'distortion_coefficients': {
+                    'rows': 1,
+                    'cols': 5,
+                    'data': [
+                        float(dist_coeffs[0][0]),
+                        float(dist_coeffs[0][1]),
+                        float(dist_coeffs[0][2]),
+                        float(dist_coeffs[0][3]),
+                        float(dist_coeffs[0][4])
+                    ]
+                    }
+                }
+            }
+        }
+
+
         with open(self.output_path + '/camera_parameters.yaml', 'w') as f:
             yaml.dump(calibration_data, f)
         
