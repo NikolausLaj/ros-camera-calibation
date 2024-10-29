@@ -5,6 +5,7 @@ import rclpy
 from rclpy.node import Node
 import os
 import sys
+import yaml
 
 class CameraCalibrationNode(Node):
     def __init__(self):
@@ -14,16 +15,19 @@ class CameraCalibrationNode(Node):
         self.declare_parameter('checkerboard_dims', [7, 7])
         self.declare_parameter('square_size', 1.0)
         self.declare_parameter('image_path', '')
+        self.declare_parameter('output_path', '')
 
         # Retrieve the parameters
         checkerboard_dims = self.get_parameter('checkerboard_dims').get_parameter_value().integer_array_value
         self.checkerboard_size = (checkerboard_dims[0], checkerboard_dims[1])
         self.square_size = self.get_parameter('square_size').get_parameter_value().double_value
         self.image_path = self.get_parameter('image_path').get_parameter_value().string_value
+        self.output_path = self.get_parameter('output_path').get_parameter_value().string_value
 
-        self.get_logger().info(f"Checkerbord dimensions: {self.checkerboard_size}")
+        self.get_logger().info(f"Checkerboard dimensions: {self.checkerboard_size}")
         self.get_logger().info(f"Square size: {self.square_size}")
         self.get_logger().info(f"Image path: {self.image_path}")
+        self.get_logger().info(f"Output path: {self.output_path}")
 
         # Verify the image path
         if not os.path.exists(self.image_path):
@@ -79,9 +83,18 @@ class CameraCalibrationNode(Node):
         self.get_logger().info(f"Camera Matrix:\n{camera_matrix}")
         self.get_logger().info(f"Distortion Coefficients:\n{dist_coeffs}")
 
-        # Save calibration data
-        np.savez('calibration_data.npz', camera_matrix=camera_matrix, dist_coeffs=dist_coeffs, rvecs=rvecs, tvecs=tvecs)
-        self.get_logger().info("Calibration data saved to 'calibration_data.npz'")
+        # Save calibration data to YAML
+        calibration_data = {
+            'camera_matrix': camera_matrix.tolist(),
+            'dist_coeffs': dist_coeffs.tolist(),
+            'rotation_vectors': [rvec.tolist() for rvec in rvecs],
+            'translation_vectors': [tvec.tolist() for tvec in tvecs]
+        }
+        
+        with open(self.output_path + '/camera_parameters.yaml', 'w') as f:
+            yaml.dump(calibration_data, f)
+        
+        self.get_logger().info("Calibration data saved to 'camera_parameters.yaml'")
 
 def main(args=None):
     rclpy.init(args=args)
