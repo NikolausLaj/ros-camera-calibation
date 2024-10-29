@@ -29,7 +29,8 @@ while count < args.num_images:
         break
 
     # Show the frame
-    cv2.imshow("Webcam", frame)
+    flip_frame = cv2.flip(frame, 1)
+    cv2.imshow("Webcam", flip_frame)
 
     # Wait for key press
     key = cv2.waitKey(1) & 0xFF
